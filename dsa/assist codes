@@ -1,0 +1,44 @@
+/*
+*    vector 
+*/
+
+class Fib{
+    proctected:
+        int * array;
+        int i;
+
+    public:
+        Fib( int length );
+        ~Fib();
+        int get();
+        int prev();
+
+
+        Fib::Fib( int length ){
+    
+            array = new int[length];
+            array[0] = 1;
+            array[1] = 1;
+
+            for(i = 2; i < length; i++){
+                array[i] = array[i - 1] + array[i - 2];
+            }
+
+        }
+
+        Fib::~Fib(){
+            delete [] array;
+        }
+
+
+
+    }
+
+template<typename T> void swap( T & a, T & b ){
+    T tem = a;
+    a = b;
+    b = tem;
+}
+
+
+
