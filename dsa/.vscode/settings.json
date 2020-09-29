@@ -39,8 +39,7 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "typeinfo": "cpp",
-        "fib": "cpp",
-        "assist codes": "cpp"
+        "list": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

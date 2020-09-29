@@ -3,7 +3,7 @@
 */
 
 class Fib{
-    proctected:
+    protected:
         int * array;
         int i;
 
@@ -14,7 +14,7 @@ class Fib{
         int prev();
 
 
-        Fib::Fib( int length ){
+        Fib( int length ){
     
             array = new int[length];
             array[0] = 1;
@@ -26,7 +26,7 @@ class Fib{
 
         }
 
-        Fib::~Fib(){
+        ~Fib(){
             delete [] array;
         }
 

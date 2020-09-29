@@ -1,0 +1,127 @@
+/*
+ * @Author: your name
+ * @Date: 2020-09-29 12:19:18
+ * @LastEditTime: 2020-09-29 17:56:47
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \dsa\stack
+ */
+#include "vector"
+
+template<typename T> class Stack: public Vector<T>{
+    public:
+        void push( T const & e ){
+            insert( size(), e );
+        }
+
+        T pop(){
+            return remove( size() - 1 );
+        }
+
+        T & top(){
+            return ( *this )[ size() - 1 ];
+        }
+
+
+        
+}
+
+// void convert( Stack<char> & S, __int64 n, int base ){
+//     static char digit[] = {
+//         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+//     };
+//     if( 0 < n ){
+//         S.push( digit[n % base] );
+//         convert( S, n / base, base );
+//     }
+// }
+
+void convert( Stack<char> & S, __int64 n, int base ){
+    static char digit[] = {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+    };
+    while( n > 0 ){
+        int remainder = ( int )( n % base );
+        S.push( digit[remainder] );
+        n /= base;
+    }
+}
+
+void trim( const char exp[], int & lo, int & hi ){
+    while( ( lo <= hi ) && ( exp[lo] != '(' ) && ( exp[lo] != ')' ) ){
+        lo++;
+    }
+    while( ( lo <= hi ) && ( exp[hi] != '(' ) && ( exp[hi] != ')' ) ){
+        lo--;
+    }
+}
+
+int divide( const char exp[], int lo, int hi ){
+    int mi = lo;
+    int crc = 1;
+    while( ( 0 < crc )&&( ++mi < hi ) ){
+        if( exp[mi] == ')' ){
+            crc--;
+        }
+        if( exp[mi] == '(' ){
+            crc++;
+        }
+    }
+    return mi;
+}
+
+// bool paren( const char exp[], int lo, int hi ){
+//     trim( exp, lo, hi );
+//     if( lo > hi ){
+//         return true;
+//     }
+//     if( exp[lo] != '(' ){
+//         return false;
+//     }
+//     if( exp[hi] != ')' ){
+//         return true;
+//     }
+//     int mi = divide( exp, lo, hi );
+//     if( mi > hi ){
+//         return false;
+//     }
+//     return paren( exp, lo + 1, mi - 1 ) && paren( exp, mi + 1, hi );
+// }
+
+bool paren( const char exp[], int lo, int hi ){
+    Stack<char> S;
+    for( int i = lo; i <= hi; i++ ){
+        switch( exp[i] ){
+            case '(': 
+            case '[':
+            case '{':
+                S.push( exp[i] );
+                break;
+            case ')':
+                if( ( S.empty() ) || ( '(' !=S.pop() ) ){
+                    return false;
+                }
+                break;
+            case ']':
+                if( ( S.empty() ) || ( '[' !=S.pop() ) ){
+                    return false;
+                }
+                break;
+            case '}':
+                if( ( S.empty() ) || ( '{' !=S.pop() ) ){
+                    return false;
+                }
+                break;
+            default: break;
+        }
+    }
+    return S.empty();
+}
+
+
+
+
+
+
+
+
