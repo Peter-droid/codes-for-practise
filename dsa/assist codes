@@ -1,4 +1,12 @@
 /*
+ * @Author: your name
+ * @Date: 2020-09-27 16:21:47
+ * @LastEditTime: 2020-09-29 23:31:18
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: \dsa\assist codes
+ */
+/*
 *    vector 
 */
 
@@ -34,7 +42,8 @@ class Fib{
 
     }
 
-template<typename T> void swap( T & a, T & b ){
+template<typename T> 
+void swap( T & a, T & b ){
     T tem = a;
     a = b;
     b = tem;
@@ -44,5 +53,36 @@ template<typename T> void swap( T & a, T & b ){
 *    list
 */
 
+/*
+*  stack
+*/
 
+sturct Queen{
+    int x, y;
+    Queen( int xx = 0. int yy = 0 ) : x (xx) , y ( yy ) {};
+    bool operator== ( Queen const & q ) const{
+        return( x == q.x )
+                || ( y == q.y )
+                || ( x + y == q.x + q.y )
+                || ( x - y == q.x - q.y );
 
+    }
+    bool operator!= ( Queen const & q ) const {
+        return !( *this == q );
+    }
+};
+
+void place Queens( int N ){
+    Stack<Queen> solu;
+    Queen q(0, 0);
+    do
+    {
+        if ( N <= solu.size() || N <= q.y )
+        {
+            q = solu.pop();
+            y++;
+        }
+        
+    } while ( ( 0 < q.x ) || ( q.y < N ) );
+    
+}
