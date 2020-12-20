@@ -1,0 +1,402 @@
+/*
+ * @Author: your name
+ * @Date: 2020-10-02 23:17:20
+ * @LastEditTime: 2020-10-07 00:40:37
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \dsa\binarySearchTree
+ */
+
+#include "tree"
+
+// AVL Tree
+
+#define Balanced(x) ( stature( (x).lc ) == stature( (x).rc ) )
+#define BalFac(x) ( stature( (x).lc ) - stature( (x).rc ) )
+#define AvlBalanced(x) ( ( -2 < BalFac(x) ) && ( BalFac(x) < 2 ) )
+#define tallerChild(x)( \
+    stature( (x)->lc ) > stature( (x)->rc ) ? (x)->lc : ( \
+    stature( (x)->lc ) < stature( (x)->rc ) ? (x)->rc : ( \
+    IsLChild( *(x) ) ? (x)->lc : (x)->rc ) \
+    ) \
+    )
+
+
+
+template<typename K, typename V> struct Entry
+{
+    K key;
+    V value;
+    Entry( K k = K(), V v = V() ) : key( k ), value( v ){};
+
+    Entry( Entry<K, V> const & e ) : key( e.key ), value( e.value ){};
+
+    bool operator< ( Entry<K, V> const & e ) {
+        return key < e.key;
+    }
+
+    bool operator> ( Entry<K, V> const & e ) {
+        return key > e.key;
+    }
+
+    bool operator== ( Entry<K, V> const & e ) {
+        return key == e.key;
+    }
+
+    bool operator!= ( Entry<K, V> const & e ) {
+        return key != e.key;
+    }
+};
+
+
+template<typename T> class BST : public BinTree<T> {
+    protected:
+        BinNodePosi(T) _hot;
+
+        BinNodePosi(T) connect34{
+            BinNodePosi(T), BinNodePosi(T), BinNodePosi(T), 
+            BinNodePosi(T), BinNodePosi(T), BinNodePosi(T), BinNodePosi(T)
+        }
+
+        BinNodePosi(T) rotateAt( BinNodePosi(T) x );
+
+        public:
+            virtual BinNodePosi(T) & search( const T & e );
+
+            virtual BinNodePosi(T) insert ( const T & e );
+
+            virtual bool remove( const T & e );
+
+};
+
+template<typename T>
+static BinNodePosi(T) & searchIn( BinNodePosi(T) & v, const T & e, BinNodePosi(T) & hot ){
+    if( !v || ( e == v->data ) ){
+        return v;
+    }
+    hot = v;
+    return searchIn( ( ( e < v->data ) ? v->lc : v->rc ), e, hot ); 
+}
+
+template<typename T> BinNodePosi(T) & BST<T>::search( const T & e ){
+    return searchIn( _root, e, _hot = NULL );
+}
+
+template<typename T> BinNodePosi(T) BST<T>::insert( const T & e ){
+    BinNodePosi(T) & x = search(e);
+    if(x){
+        return x;
+    }
+    x = new BinNode<T>(e, _hot);
+    _size++;
+    updateHeightAbove(x);
+    return x;
+}
+
+template<typename T>bool BST<T>::remove( const T & e ){
+    BinNodePosi(T) & x = search( e );
+    if( !x ){
+        return false;
+    }
+    removeAt( x, _hot );
+    _size--;
+    updateHeightAbove( _hot );
+    return true;
+}
+
+template<typename T>
+static BinNodePosi(T) removeAt( BinNodePosi(T) & x, BinNodePosi(T) & hot ){
+    BinNodePosi(T) w = x;
+    BinNodePosi(T) succ = NULL;
+    if( !HasLChild( *x ) ){
+        succ = x = x->rc;
+    }
+    else if( !HasRChild( *x ) ){
+        succ = x = x->lc;
+    }
+    else{
+        w = w->succ();
+        swap( x->data, w->data );
+        BinNodePosi(T) u = w->parent;
+        ( ( u == x )? u-> lc : u->rc ) = succ = w->rc;
+    }
+    hot = w->parent;
+    if( succ ) {
+        succ->parent = hot;
+    }
+    release( w->data );
+    release( w );
+    return succ;
+}
+
+template<typename T> class AVL : public BST<T>{
+    public:
+        BinNodePosi(T) insert ( const T & e );
+        bool remove( const T & e );
+}
+
+template<typename T> BinNodePosi(T) AVL<T>::insert( const T & e ){
+    BinNodePosi(T) & x = search( e );
+    if( x ){
+        return x;
+    }
+    BinNodePosi(T) xx = x = new BinNode<T>( e, _hot );
+    _size++;
+    for( BinNodePosi(T) g = _hot; g; g = g->parent ){
+        if( !AvlBalanced( *g ) ){
+            FromParentTo( *g ) = rotateAt( tallerChild( tallerChild( g ) ) );
+            break;
+        }
+        else{
+            updateHeight( g );
+        }
+        return xx;
+    }
+}
+
+template<typename T> bool AVL<T>::remove( const T & e ){
+    BinNodePosi(T) & x = search( e );
+    if( !x ){
+        return false;
+    }
+    removeAt( x, _hot );
+    _size--;
+    for( BinNodePosi(T) g = _hot; g; g = g->parent ){
+        if( !AvlBalanced( *g ) ){
+            g = FromParentTo( *g ) = rotateAt( tallerChild( tallerChild( g ) ) );
+        }
+        updateHeight( g );
+    }
+    return true;
+}
+
+template<typename T> BinNodePosi(T) BST<T>::connect34(
+    BinNodePosi(T) a, BinNodePosi(T) b, BinNodePosi(T) c,
+    BinNodePosi(T) T0, BinNodePosi(T) T1, BinNodePosi(T) T2, BinNodePosi(T) T3,
+){
+    a->lc = T0;
+    if( T0 ){
+        T0->parent = a;
+    }
+    a->rc = T1;
+    if( T1 ){
+        T1->parent = a;
+    }
+    updateHeight( a );
+    c->lc = T2;
+    if( T2 ){
+        T2->parent = c;
+    }
+    c->rc = T3;
+    if( T3 ){
+        T3->parent = c;
+    }
+    updateHeight( c );
+    b->lc = a;
+    if( a ){
+        a->parent = b;
+    }
+    b->rc = c;
+    if( c ){
+        c->parent = b;
+    }
+    updateHeight( b );
+    return b;
+}
+
+template<typename T> BinNodePosi(T) BST<T>::rotateAt( BinNodePosi(T) v ){
+    BinNodePosi(T) p = v->parent;
+    BinNodePosi(T) g = p->parent;
+    if( IsLChild( *p ) ){
+        if( IsLChild( *v ) ){
+            p->parent = g->parent;
+            return connect34( v, p, g, v->lc, v->rc, p->rc, g->rc );
+        }
+        else{
+            v->parent = g->parent;
+            return connect34( v, p, g, p->lc, v->lc, p->rc, g->rc );
+        }
+    }
+    else{
+        if( IsRChild( *v ) ){
+            p->parent = g->parent;
+            return connect34( g, p, v, g->lc, p->lc, v->lc, v->rc );
+        }
+        else{
+            v->parent = g->parent;
+            return connect34( g, v, p, g->lc, v->lc, v->rc, g->rc );
+        }
+    }
+}
+
+template<typename T> class Splay : public BST<T>{
+    protected:
+        BinNodePosi(T) splay( BinNodePosi(T) v );
+    
+    public:
+        BinNodePosi(T) & search( const T & e );
+
+        BinNodePosi(T) insert ( const T & e );
+
+        bool remove( const T & e );
+
+
+}
+
+template<typename NodePosi> inline
+void attachAsLChild( NodePosi p, NodePosi lc ){
+    p->lc = lc;
+    if( lc ){
+        lc->parent = p;
+    }
+}
+
+template<typename NodePosi> inline
+void attachAsRChild( NodePosi p, NodePosi rc ){
+    p->rc = rc;
+    if( rc ){
+        rc->parent = p;
+    }
+}
+
+template<typename T>
+BinNodePosi(T) Splay<T>::splay( BinNodePosi(T) v ){
+    if( !v ){
+        return NULL;
+    }
+    BinNodePosi(T) p, g;
+    while (( p = v->parent ) && ( g = p->parent ))
+    {
+        BinNodePosi(T) gg = g->parent;
+        if( IsLChild( *v ) ){
+            if( IsLChild( *p ) ){ //zig-zig
+                attachAsLChild( g, p->rc );
+                attachAsLChild( p, v->rc );
+                attachAsRChild( p, g );
+                attachAsRChild( v, p );
+            }
+            else{
+                attachAsLChild( p, v->rc );
+                attachAsRChild( g, v->lc );
+                attachAsRChild( v, p );
+                attachAsLChild( v, g );
+            }
+        }
+        else if( IsRChild( *p ) ){
+            attachAsRChild( g, p->lc );
+            attachAsRChild( p, v->lc );
+            attachAsLChild( p, g );
+            attachAsLChild( v, p );
+        }
+        else{
+            attachAsRChild( p, v->lc );
+            attachAsLChild( g, v->rc );
+            attachAsRChild( v, g );
+            attachAsLChild( v, p );
+        }
+        if( !gg ){
+            v->parent = NULL;
+        }
+        else{
+            ( g == gg->lc ) ? attachAsLChild( gg, v ) : attachAsRChild( gg, v );
+        }
+        updateHeight( g );
+        updateHeight( p );
+        updateHeight( v );
+    }
+    if( p = v->parent ){
+        if( IsLChild( *v ) ){
+            attachAsLChild( p, v->rc );
+            attachAsRChild( v, p );
+        }
+        else{
+            attachAsRChild( p, v->lc );
+            attachAsLChild( v, p );    
+        }
+        updateHeight( p );
+        updateHeight( v );
+    }
+    v->parent = NULL;
+    return v;
+    
+}
+
+template<typename T> BinNodePosi(T) & Splay<T>::search( const T & e ){
+    BinNodePosi(T) p = searchIn( _root, e, _hot = NULL );
+    _root = splay( p ? p : _hot );
+    return _root;
+}
+
+template<typename T> BinNodePosi(T) Splay<T>::insert( const T & e ){
+    if( !_root ){
+        _size++;
+        return _root = new BinNode<T> ( e );
+    }
+    if( e == search( e ) ->data ){
+        return _root;
+    }
+    _size++;
+    BinNodePosi(T) t = _root;
+    if( _root->data < e ){
+        t->parent = _root = new BinNode<T> ( e, NULL, t, t->rc );
+        if( HasRChild( *t ) ){
+            t->rc->parent = _root;
+            t->rc = NULL;
+        }
+    }
+    else{
+        t->parent = _root = new BinNode<T>( e, NULL, t->lc, t );
+        if( HasLChild( *t ) ){
+            t->lc->parent = _root;
+            t->lc = NULL;
+        }
+    }
+    updateHeightAbove( t );
+    return _root;
+}
+
+template<typename T> bool Splay<T>::remove( const T & e ){
+    if( !_root || ( e != search( e )->data ) ){
+        return false;
+    }
+    BinNodePosi(T) w = _root;
+    if( !HasLChild( *_root ) ){
+        _root = _root->rc;
+        if( _root ){
+            _root->parent = NULL;
+        }
+    }
+    else if( !HasRChild( *_root ) ){
+        _root = _root->lc;
+        if( _root ){
+            _root->parent = NULL;
+        }
+    }
+    else{
+        BinNodePosi(T) lTree = _root->lc;
+        lTree->parent = NULL;
+        _root->lc = NULL;
+        _root = _root->rc;
+        _root->parent = NULL;
+        search( w->data );
+        _root->lc = lTree;
+        lTree->parent = _root;
+    }
+    release( w->data );
+    release( w );
+    _size--;
+    if( _root ){
+        updateHeight( _root );
+    }
+    return true;
+}
+
+
+
+
+
+
+
+
+
+
